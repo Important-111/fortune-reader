@@ -2164,6 +2164,21 @@
       syncYearBtns();
     }
 
+    /* 出生日期 · 月份前后调节（日截断到目标月最大天数；范围 [1900, 当前年份]） */
+    function shiftBirthMonth(delta) {
+      if (!birthDateInput) return;
+      var base = getBirthBase();
+      var total = base.y * 12 + (base.m - 1) + delta;
+      var ny = Math.floor(total / 12);
+      var nm = total % 12 + 1;
+      if (ny < YEAR_MIN || ny > new Date().getFullYear()) return;
+      var nd = Math.min(base.d, new Date(ny, nm, 0).getDate());
+      birthDateInput.value = ny + '-' + pad2(nm) + '-' + pad2(nd);
+      lastValidBirth = birthDateInput.value; // 与 blur 校验基准保持同步
+      birthDateInput.dispatchEvent(new Event('change', { bubbles: true }));
+      syncYearBtns();
+    }
+
     if (yearPrevBtn) yearPrevBtn.addEventListener('click', function () { shiftBirthYear(-1); });
     if (yearNextBtn) yearNextBtn.addEventListener('click', function () { shiftBirthYear(1); });
     if (birthDateInput) birthDateInput.addEventListener('change', syncYearBtns);
@@ -2191,11 +2206,11 @@
 
       var html = '';
       html += '<div class="dpp-head">';
-      html += '<button type="button" class="dpp-nav dpp-m-prev" aria-label="上一月" title="上一月">«</button>';
+      html += '<button type="button" class="dpp-nav dpp-m-prev" aria-label="上一月" title="上一月">《</button>';
       html += '<button type="button" class="dpp-nav dpp-d-prev" aria-label="前一天" title="前一天">◀</button>';
       html += '<div class="dpp-title">' + y + '年' + m + '月</div>';
       html += '<button type="button" class="dpp-nav dpp-d-next" aria-label="后一天" title="后一天">▶</button>';
-      html += '<button type="button" class="dpp-nav dpp-m-next" aria-label="下一月" title="下一月">»</button>';
+      html += '<button type="button" class="dpp-nav dpp-m-next" aria-label="下一月" title="下一月">》</button>';
       html += '</div>';
       html += '<div class="dpp-week">';
       for (var w = 0; w < 7; w++) html += '<span>' + DPP_WEEKS[w] + '</span>';
@@ -2233,17 +2248,6 @@
       birthDatePop.hidden = false;
     }
 
-    /* 年/月快捷翻页（年份下限与 YEAR_MIN 一致） */
-    function shiftPopView(yearDelta, monthDelta) {
-      var total = popView.y * 12 + (popView.m - 1) + yearDelta * 12 + monthDelta;
-      var ny = Math.floor(total / 12);
-      var nm = total % 12 + 1;
-      if (ny < YEAR_MIN) { ny = YEAR_MIN; nm = 1; }
-      popView.y = ny;
-      popView.m = nm;
-      renderBirthDatePicker();
-    }
-
     /* 弹层内点击：导航按钮翻页 / 点选日期写回 input（事件委托） */
     if (birthDatePop) {
       /* 弹层内 mousedown 阻止默认焦点转移：input 不失焦，click 不会被 blur→change→重渲染吃掉 */
@@ -2252,8 +2256,8 @@
         var t = e.target;
         if (!t || !t.classList) return;
         if (t.classList.contains('dpp-nav')) {
-          if (t.classList.contains('dpp-m-prev')) shiftPopView(0, -1);
-          else if (t.classList.contains('dpp-m-next')) shiftPopView(0, 1);
+          if (t.classList.contains('dpp-m-prev')) shiftBirthMonth(-1);
+          else if (t.classList.contains('dpp-m-next')) shiftBirthMonth(1);
           else if (t.classList.contains('dpp-d-prev')) shiftBirthDay(-1);
           else if (t.classList.contains('dpp-d-next')) shiftBirthDay(1);
           return;
