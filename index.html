@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>遇事不决，全靠玄学 · 个人运势解读小工具</title>
+  <meta name="description" content="基于四柱八字、紫微斗数、六爻、梅花易数、星座、血型、MBTI 等个人资料的确定性运势推演工具" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="bg-decor" aria-hidden="true">
+    <span class="deco-star"></span>
+    <span class="deco-star"></span>
+    <span class="deco-star"></span>
+    <span class="deco-star"></span>
+    <span class="deco-star"></span>
+    <span class="deco-mountain"></span>
+    <span class="deco-mountain"></span>
+    <span class="deco-sun"></span>
+  </div>
+
+  <!-- 顶部大标题模块（整个工具的主标题） -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-badge" aria-hidden="true">玄</span>
+        <div class="brand-text site-title">
+          <h1>遇事不决，全靠玄学</h1>
+          <p>个人运势解读小工具 · 四柱 / 紫微 / 六爻 / 梅花 / 星相</p>
+        </div>
+      </div>
+      <p class="header-note">数据仅在本机计算，不上传 · 结果仅供参考娱乐</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- 求签区（第一位：壹） -->
+    <section class="panel fun-panel" aria-labelledby="lottery-title">
+      <div class="panel-head">
+        <h2 id="lottery-title"><span class="num">壹</span> 求签 · 摇签筒</h2>
+        <p class="hint">心诚则灵。同一人、同一维度、同一天会抽到同一支签；想换换手气，可用「随手再抽一签」。</p>
+      </div>
+      <div class="fun-controls">
+        <div class="field fun-field">
+          <label for="lottery-period">求签维度</label>
+          <select id="lottery-period">
+            <option value="day">今日</option>
+            <option value="week">本周</option>
+            <option value="month">本月</option>
+            <option value="year">今年</option>
+          </select>
+        </div>
+        <div class="fun-actions">
+          <button type="button" class="btn-primary" id="btn-lottery">🎋 求签</button>
+          <button type="button" class="btn-ghost" id="btn-lottery-random">换个手气 · 随手再抽一签</button>
+        </div>
+      </div>
+      <p class="source-note">签诗与「签文解析」为工具原创文本，结构对标知名寺庙灵签（灵隐寺、南普陀等《灵签》体系）的解签格式编写，并非任何真实签谱原典，仅供娱乐。</p>
+      <div class="sign-card hidden" id="sign-card" aria-live="polite"></div>
+    </section>
+
+    <!-- 答案之书区（第二位：贰） -->
+    <section class="panel fun-panel" aria-labelledby="book-title">
+      <div class="panel-head">
+        <h2 id="book-title"><span class="num">贰</span> 答案之书</h2>
+        <p class="hint">心里默默想一个问题，再翻开答案之书。每次翻开都是新的一页。</p>
+      </div>
+      <div class="fun-controls">
+        <div class="field fun-field book-field">
+          <label for="book-question">你的问题（可选，留空也能翻）</label>
+          <input type="text" id="book-question" placeholder="例如：这周要不要去旅行？" autocomplete="off" />
+        </div>
+        <div class="fun-actions">
+          <button type="button" class="btn-primary" id="btn-book">📖 翻开答案之书</button>
+        </div>
+      </div>
+      <p class="source-note">答案之书的 300 条回答为工具原创短句，风格参考占卜翻书玩法，并无原典，仅供娱乐。</p>
+      <div class="book-card hidden" id="book-card" aria-live="polite"></div>
+    </section>
+
+    <!-- 运程区（第三位：叁 + 玄徽标 + 运程，含录入个人资料表单） -->
+    <section class="panel form-panel" aria-labelledby="fortune-title">
+      <div class="panel-head brand-head">
+        <h2 class="brand-heading" id="fortune-title"><span class="num">叁</span> 运程</h2>
+      </div>
+
+      <div class="form-subhead">
+        <h3 id="form-title">录入个人资料</h3>
+        <p class="hint">按需填写，可只填一部分。至少提供生日即可推演出基础运势。</p>
+      </div>
+
+      <form id="fortune-form" novalidate>
+        <div class="form-grid">
+          <div class="field">
+            <label for="name">姓名</label>
+            <input type="text" id="name" name="name" placeholder="可选" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="gender">性别</label>
+            <select id="gender" name="gender">
+              <option value="">未指定</option>
+              <option value="male">男</option>
+              <option value="female">女</option>
+            </select>
+          </div>
+        </div>
+
+        <fieldset class="birth-group">
+          <legend>出生资料（公历）</legend>
+          <div class="form-grid birth-grid">
+            <div class="field">
+              <label for="birth-date">出生日期</label>
+              <div class="birth-date-row">
+                <input type="text" id="birth-date" name="birthDate" placeholder="YYYY-MM-DD" autocomplete="off" readonly />
+                <div class="year-stepper" role="group" aria-label="出生年份调节">
+                  <button type="button" class="year-step-btn" id="year-prev" aria-label="上一年" title="上一年">◀</button>
+                  <button type="button" class="year-step-btn" id="year-next" aria-label="下一年" title="下一年">▶</button>
+                </div>
+                <!-- 自绘日历弹层（替代浏览器原生 date 弹层，日期栏放大） -->
+                <div class="date-picker-pop" id="birth-date-pop" hidden></div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="birth-hour">出生时辰</label>
+              <select id="birth-hour" name="birthHour">
+                <option value="">未填</option>
+                <option value="23">子（23:00-01:00）</option>
+                <option value="1">丑（01:00-03:00）</option>
+                <option value="3">寅（03:00-05:00）</option>
+                <option value="5">卯（05:00-07:00）</option>
+                <option value="7">辰（07:00-09:00）</option>
+                <option value="9">巳（09:00-11:00）</option>
+                <option value="11">午（11:00-13:00）</option>
+                <option value="13">未（13:00-15:00）</option>
+                <option value="15">申（15:00-17:00）</option>
+                <option value="17">酉（17:00-19:00）</option>
+                <option value="19">戌（19:00-21:00）</option>
+                <option value="21">亥（21:00-23:00）</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="birth-place">出生地（用于方位五行参考）</label>
+              <select id="birth-place" name="birthPlace">
+                <option value="">未填（按北京时辰推演）</option>
+                <optgroup label="华北">
+                  <option value="beijing">北京</option>
+                  <option value="tianjin">天津</option>
+                  <option value="shijiazhuang">石家庄</option>
+                  <option value="taiyuan">太原</option>
+                  <option value="hohhot">呼和浩特</option>
+                </optgroup>
+                <optgroup label="东北">
+                  <option value="shenyang">沈阳</option>
+                  <option value="harbin">哈尔滨</option>
+                </optgroup>
+                <optgroup label="华东">
+                  <option value="shanghai">上海</option>
+                  <option value="nanjing">南京</option>
+                  <option value="hangzhou">杭州</option>
+                  <option value="hefei">合肥</option>
+                  <option value="fuzhou">福州</option>
+                  <option value="nanchang">南昌</option>
+                  <option value="jinan">济南</option>
+                  <option value="qingdao">青岛</option>
+                </optgroup>
+                <optgroup label="华中">
+                  <option value="zhengzhou">郑州</option>
+                  <option value="wuhan">武汉</option>
+                  <option value="changsha">长沙</option>
+                </optgroup>
+                <optgroup label="华南">
+                  <option value="guangzhou">广州</option>
+                  <option value="shenzhen">深圳</option>
+                  <option value="xiamen">厦门</option>
+                  <option value="nanning">南宁</option>
+                  <option value="haikou">海口</option>
+                </optgroup>
+                <optgroup label="西南">
+                  <option value="chongqing">重庆</option>
+                  <option value="chengdu">成都</option>
+                  <option value="guiyang">贵阳</option>
+                  <option value="kunming">昆明</option>
+                  <option value="lasa">拉萨</option>
+                </optgroup>
+                <optgroup label="西北">
+                  <option value="xian">西安</option>
+                  <option value="lanzhou">兰州</option>
+                  <option value="xining">西宁</option>
+                  <option value="yinchuan">银川</option>
+                  <option value="urumqi">乌鲁木齐</option>
+                </optgroup>
+                <optgroup label="港澳台">
+                  <option value="hongkong">香港</option>
+                  <option value="macau">澳门</option>
+                  <option value="taipei">台北</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="field">
+              <label for="constellation">星座（留空自动按生日推算）</label>
+              <select id="constellation" name="constellation">
+                <option value="">自动推算</option>
+                <option value="aries">白羊座</option>
+                <option value="taurus">金牛座</option>
+                <option value="gemini">双子座</option>
+                <option value="cancer">巨蟹座</option>
+                <option value="leo">狮子座</option>
+                <option value="virgo">处女座</option>
+                <option value="libra">天秤座</option>
+                <option value="scorpio">天蝎座</option>
+                <option value="sagittarius">射手座</option>
+                <option value="capricorn">摩羯座</option>
+                <option value="aquarius">水瓶座</option>
+                <option value="pisces">双鱼座</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="blood">血型</label>
+            <select id="blood" name="blood">
+              <option value="">未填</option>
+              <option value="A">A 型</option>
+              <option value="B">B 型</option>
+              <option value="AB">AB 型</option>
+              <option value="O">O 型</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="mbti">MBTI 人格</label>
+            <select id="mbti" name="mbti">
+              <option value="">未填</option>
+              <option value="INTJ">INTJ</option>
+              <option value="INTP">INTP</option>
+              <option value="ENTJ">ENTJ</option>
+              <option value="ENTP">ENTP</option>
+              <option value="INFJ">INFJ</option>
+              <option value="INFP">INFP</option>
+              <option value="ENFJ">ENFJ</option>
+              <option value="ENFP">ENFP</option>
+              <option value="ISTJ">ISTJ</option>
+              <option value="ISFJ">ISFJ</option>
+              <option value="ESTJ">ESTJ</option>
+              <option value="ESFJ">ESFJ</option>
+              <option value="ISTP">ISTP</option>
+              <option value="ISFP">ISFP</option>
+              <option value="ESTP">ESTP</option>
+              <option value="ESFP">ESFP</option>
+            </select>
+          </div>
+        </div>
+
+        <fieldset class="birth-group matter-group">
+          <legend>一事专断（可选）</legend>
+          <p class="matter-hint">想对某一件具体事情单独问问吉凶与建议？选一个分类、写一句事项，二者取其一即可；留空则只出整体运势。</p>
+          <div class="form-grid matter-grid">
+            <div class="field">
+              <label for="matter-category">事项分类</label>
+              <select id="matter-category" name="matterCategory">
+                <option value="">不分类（只按文字）</option>
+                <option value="career">工作/事业</option>
+                <option value="wealth">财运/投资</option>
+                <option value="love">感情/姻缘</option>
+                <option value="health">健康/出行</option>
+                <option value="study">考试/学业</option>
+                <option value="deal">洽谈/合作</option>
+                <option value="home">搬家/置业</option>
+                <option value="other">其他</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="matter-text">具体事项（写一句，如“下周要不要跳槽”）</label>
+              <input type="text" id="matter-text" name="matterText" placeholder="可选 · 例如：下周要不要跳槽、要不要买这套房、今天去不去相亲" autocomplete="off" />
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" id="btn-fortune">起卦推运</button>
+          <button type="button" class="btn-ghost" id="btn-reset">清空重填</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 结果区（第四位：肆） -->
+    <section class="panel result-panel" id="result-panel" aria-labelledby="result-title" hidden>
+      <div class="panel-head result-head">
+        <h2 id="result-title"><span class="num">肆</span> 运势解读</h2>
+        <div class="tabs" role="tablist" aria-label="时间维度">
+          <button class="tab active" data-period="day" role="tab" aria-selected="true">今日<span class="tab-date"></span></button>
+          <button class="tab" data-period="week" role="tab" aria-selected="false">本周<span class="tab-date"></span></button>
+          <button class="tab" data-period="month" role="tab" aria-selected="false">本月<span class="tab-date"></span></button>
+          <button class="tab" data-period="year" role="tab" aria-selected="false">今年<span class="tab-date"></span></button>
+        </div>
+      </div>
+
+      <!-- 概览卡 -->
+      <div class="overview-card" id="overview-card">
+        <div class="ov-gauge">
+          <div class="gauge-ring">
+            <svg viewBox="0 0 120 120" class="gauge-svg">
+              <circle class="gauge-bg" cx="60" cy="60" r="52" />
+              <circle class="gauge-value" id="gauge-path" cx="60" cy="60" r="52" />
+            </svg>
+            <div class="gauge-center">
+              <span class="gauge-score" id="gauge-score">0</span>
+              <span class="gauge-label">运势指数</span>
+            </div>
+          </div>
+          <div class="ov-info">
+            <div class="ov-level-row">
+              <span class="ov-label">总体等级</span>
+              <span class="level-pill" id="level-pill">吉</span>
+            </div>
+            <div class="ov-star" id="ov-star"></div>
+            <ul class="ov-lucky">
+              <li>幸运色 <b id="lucky-color">朱砂红</b></li>
+              <li>幸运数字 <b id="lucky-number">7</b></li>
+              <li><span class="ov-period-label" id="period-label">今日</span>干支 <b id="period-ganzhi">——</b></li>
+              <li id="ov-birthplace-wrap" hidden>出生地 <b id="ov-birthplace">——</b></li>
+            </ul>
+          </div>
+        </div>
+        <div class="ov-summary" id="ov-summary">——</div>
+      </div>
+
+      <!-- MBTI 人格视角（未填 MBTI 时隐藏） -->
+      <div class="mbti-card hidden" id="mbti-card" hidden></div>
+
+      <!-- 一事专断（整体运势之上；未填具体事项时隐藏） -->
+      <div class="matter-card hidden" id="matter-card"></div>
+
+      <!-- 吉凶清单 -->
+      <div class="cards-row">
+        <div class="card good-card">
+          <h3 class="card-title">宜 · 宜做之事</h3>
+          <ul class="do-list" id="do-list"></ul>
+        </div>
+        <div class="card avoid-card">
+          <h3 class="card-title">忌 · 忌做之事</h3>
+          <ul class="avoid-list" id="avoid-list"></ul>
+        </div>
+      </div>
+
+      <!-- 领域提示 -->
+      <div class="domain-grid" id="domain-grid"></div>
+
+      <p class="disclaimer">以上内容由本地确定性算法推演，仅供娱乐参考，不构成任何现实建议。</p>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>遇事不决，全靠玄学 · 个人运势解读小工具 —— 数据本地计算，可复现可验证。</p>
+  </footer>
+
+  <script src="js/fortune.js"></script>
+</body>
+</html>
