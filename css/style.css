@@ -349,7 +349,7 @@ select option { background: var(--bg-panel-solid); color: var(--ink); }
   letter-spacing: 1px;
 }
 
-/* 日期网格：6行×7列，格子明显放大 */
+/* 日期网格：动态行数（5~6行）×7列，格子明显放大 */
 .dpp-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -370,8 +370,8 @@ select option { background: var(--bg-panel-solid); color: var(--ink); }
   transition: border-color .15s, background .15s, color .15s;
 }
 .dpp-day:hover { border-color: var(--gold); color: var(--gold-light); }
-/* 非当月日期：灰显降透明度 */
-.dpp-day.dpp-out { opacity: .3; }
+/* 跨月空白占位：仅保持网格占位（aspect-ratio 撑高），不可点、无背景 */
+.dpp-day.dpp-blank { pointer-events: none; background: transparent; }
 /* 今天：鎏金细描边 */
 .dpp-day.dpp-today { border-color: var(--line); color: var(--gold-light); }
 /* 当前选中日期：鎏金高亮填充 */
