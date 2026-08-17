@@ -2184,19 +2184,24 @@
       for (var w = 0; w < 7; w++) html += '<span>' + DPP_WEEKS[w] + '</span>';
       html += '</div>';
 
-      /* 当月 1 号的星期 → 网格起点（含上月补齐日期） */
+      /* 当月 1 号的星期 + 当月天数 → 动态行数（5 或 6 行，覆盖当月最后一天即可） */
       var firstDay = new Date(y, m - 1, 1).getDay();
-      var gridStart = new Date(y, m - 1, 1 - firstDay);
+      var daysInMonth = new Date(y, m, 0).getDate();
+      var totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
 
       html += '<div class="dpp-grid">';
-      for (var i = 0; i < 42; i++) {
-        var d = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
-        var ds = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+      for (var i = 0; i < totalCells; i++) {
+        /* 当月 1 号之前的跨月补位格：空白占位（无数字、不可点、无 hover） */
+        if (i < firstDay) {
+          html += '<span class="dpp-day dpp-blank" aria-hidden="true"></span>';
+          continue;
+        }
+        var dayNum = i - firstDay + 1;
+        var ds = y + '-' + pad2(m) + '-' + pad2(dayNum);
         var cls = 'dpp-day';
-        if (d.getMonth() + 1 !== m) cls += ' dpp-out';
         if (ds === todayStr) cls += ' dpp-today';
         if (ds === selStr) cls += ' dpp-sel';
-        html += '<button type="button" class="' + cls + '" data-date="' + ds + '">' + d.getDate() + '</button>';
+        html += '<button type="button" class="' + cls + '" data-date="' + ds + '">' + dayNum + '</button>';
       }
       html += '</div>';
       birthDatePop.innerHTML = html;
@@ -2243,11 +2248,32 @@
       });
     }
 
-    /* 点击输入框：开/关弹层 */
+    /* 聚焦输入框：打开弹层；并记录当前值（blur 校验失败时回退用） */
+    var lastValidBirth = '';
     if (birthDateInput) {
-      birthDateInput.addEventListener('click', function () {
-        if (birthDatePopIsOpen()) closeBirthDatePicker();
-        else openBirthDatePicker();
+      birthDateInput.addEventListener('focus', function () {
+        lastValidBirth = birthDateInput.value;
+        openBirthDatePicker();
+      });
+      /* 失焦校验：非空值须匹配 YYYY-MM-DD、真实合法日期（2月/闰年、大小月由 Date 自动判定）、
+         年份在 [1900, 当前年份]；合法 → 规范化写回并触发 change；不合法或为空 → 回退 focus 时记录的值 */
+      birthDateInput.addEventListener('blur', function () {
+        var v = birthDateInput.value;
+        var ok = false, y = 0, m = 0, d = 0;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+          y = parseInt(v.slice(0, 4), 10);
+          m = parseInt(v.slice(5, 7), 10);
+          d = parseInt(v.slice(8, 10), 10);
+          var dim = new Date(y, m, 0).getDate();
+          ok = m >= 1 && m <= 12 && d >= 1 && d <= dim
+            && y >= YEAR_MIN && y <= new Date().getFullYear();
+        }
+        if (ok) {
+          birthDateInput.value = y + '-' + pad2(m) + '-' + pad2(d);
+          birthDateInput.dispatchEvent(new Event('change', { bubbles: true }));
+        } else {
+          birthDateInput.value = lastValidBirth;
+        }
       });
       /* value 变化（年份调节按钮写回等）时，若弹层开着则刷新显示 */
       birthDateInput.addEventListener('change', function () {
