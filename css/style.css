@@ -121,6 +121,14 @@ body {
   letter-spacing: 4px;
   color: var(--gold-light);
 }
+/* 主标题下的一句题记式副标题 */
+.brand-text .site-subtitle {
+  margin-top: 4px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  letter-spacing: 3px;
+  color: var(--gold);
+}
 .brand-text p { font-size: 12.5px; color: var(--muted); letter-spacing: .5px; }
 
 .header-note { font-size: 12px; color: var(--muted); }
@@ -976,4 +984,5 @@ select option { background: var(--bg-panel-solid); color: var(--ink); }
   .gauge-ring { width: 120px; height: 120px; }
   .gauge-score { font-size: 30px; }
   .brand-text h1 { font-size: 22px; }
+  .brand-text .site-subtitle { font-size: 13.5px; letter-spacing: 2px; }
 }
