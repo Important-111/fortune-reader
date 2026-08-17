@@ -699,6 +699,25 @@ select option { background: var(--bg-panel-solid); color: var(--ink); }
 }
 
 /* 建议列表：与 do-list 呼应 */
+.mbti-advice-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.mbti-advice-title-row .mbti-advice-title { margin-bottom: 0; }
+/* 周期专属徽标：小号金色描边 pill，四个 tab 一眼可辨 */
+.mbti-period-tag {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: rgba(216,182,114,.10);
+  flex-shrink: 0;
+  line-height: 1.4;
+}
 .mbti-advice-title {
   font-size: 14px;
   letter-spacing: 1px;
