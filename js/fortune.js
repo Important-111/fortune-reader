@@ -269,6 +269,35 @@
     inner: ['留十分钟独处，把心里的账理一理', '写两行日记，给情绪一个出口', '少刷点手机，多听自己一点']
   };
 
+  /* 时间维度 × 主导倾向 的周期主解读文案（4 × 4 = 16 条，口语、可执行、按周期主题差异化；
+     直接映射，不耗任何 rng，与主推演序列完全隔离） */
+  var MBTI_PERIOD_ADVICE = {
+    day: {
+      adv:    '今天主打一个稳准快，把最想干的那件小事一鼓作气办掉。',
+      stable: '今天别求快，守住手头一件正事做完即是稳赢。',
+      social: '今天多开口多搭话，一句闲聊可能就给你今天带来好心情。',
+      inner:  '今天留十分钟独处，听听心里那个声音再决定动不动。'
+    },
+    week: {
+      adv:    '这一周适合持续推进，把上星期的计划往前挪一大步。',
+      stable: '这一周按既定清单步步为营，收尾比开新局更重要。',
+      social: '这一周适合组局协作，拉上搭子分头行动效率更高。',
+      inner:  '这一周给思路留白，日积月累的复盘会让方向更清楚。'
+    },
+    month: {
+      adv:    '这个月别怕野心，布局可以拉长预算、落子可以更果断。',
+      stable: '这个月以稳为主，把搭好的架子一步步填实就是加分。',
+      social: '这个月适合打开人脉，一次有效的合作能顶半年单干。',
+      inner:  '这个月向内生长，把情绪和方向都理清，心定了事才顺。'
+    },
+    year: {
+      adv:    '这一年是发力之年，大胆把目标定高，持续加码成大事。',
+      stable: '这一年求的是厚积薄发，根基打牢，后面的路才走得远。',
+      social: '这一年靠人成事，多交给靠谱的人，借力比硬扛更快。',
+      inner:  '这一年是心性成长之年，稳得住自己，运气自然向你靠拢。'
+    }
+  };
+
   /* ======================== 三、核心推演函数 ======================== */
 
   /**
@@ -2497,7 +2526,10 @@
         extra = pickN(mrng, advicePool, 2);
       }
       var mainAdvice = (MBTI_ADVICE[domKey] && MBTI_ADVICE[domKey][f.levelKey]) || '';
+      // 周期主解读：按当前主导倾向 domKey 与时间维度 period 取静态文案，直接映射不耗 rng
+      var periodMain = (MBTI_PERIOD_ADVICE[period] && MBTI_PERIOD_ADVICE[period][domKey]) || '';
       var items = [];
+      if (periodMain) items.push(periodMain);
       if (mainAdvice) items.push(mainAdvice);
       items = items.concat(extra);
 
