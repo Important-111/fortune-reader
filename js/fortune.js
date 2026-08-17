@@ -2111,6 +2111,7 @@
     var yearNextBtn = document.getElementById('year-next');
     var YEAR_MIN = 1900;                 // 年份下限
     var YEAR_DEFAULT_BASE = { y: 2000, m: 1, d: 1 }; // 生日为空时的默认基准（YYYY-01-01）
+    var lastValidBirth = '';             // 最近一次合法生日值（blur 校验回退 / change 去重基准）
 
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
     function isLeapYear(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
@@ -2142,7 +2143,23 @@
       /* 2月29日 → 非闰年降级为 2月28日 */
       if (nm === 2 && nd === 29 && !isLeapYear(ny)) nd = 28;
       birthDateInput.value = ny + '-' + pad2(nm) + '-' + pad2(nd);
+      lastValidBirth = birthDateInput.value; // 与 blur 校验基准保持同步
       /* 与现有表单逻辑保持一致：触发 change */
+      birthDateInput.dispatchEvent(new Event('change', { bubbles: true }));
+      syncYearBtns();
+    }
+
+    /* 前一天/后一天：基于当前值（空则默认基准），Date 自动跨月跨年；限制 [YEAR_MIN-01-01, 当年12-31] */
+    function shiftBirthDay(delta) {
+      if (!birthDateInput) return;
+      var base = getBirthBase();
+      var dt = new Date(base.y, base.m - 1, base.d);
+      dt.setDate(dt.getDate() + delta);
+      var minY = YEAR_MIN, maxY = new Date().getFullYear();
+      if (dt.getFullYear() < minY) dt = new Date(minY, 0, 1);
+      if (dt.getFullYear() > maxY) dt = new Date(maxY, 11, 31);
+      birthDateInput.value = dt.getFullYear() + '-' + pad2(dt.getMonth() + 1) + '-' + pad2(dt.getDate());
+      lastValidBirth = birthDateInput.value; // 与 blur 校验基准保持同步
       birthDateInput.dispatchEvent(new Event('change', { bubbles: true }));
       syncYearBtns();
     }
@@ -2174,11 +2191,11 @@
 
       var html = '';
       html += '<div class="dpp-head">';
-      html += '<button type="button" class="dpp-nav dpp-y-prev" aria-label="上一年" title="上一年">«</button>';
-      html += '<button type="button" class="dpp-nav dpp-m-prev" aria-label="上一月" title="上一月">◀</button>';
+      html += '<button type="button" class="dpp-nav dpp-m-prev" aria-label="上一月" title="上一月">«</button>';
+      html += '<button type="button" class="dpp-nav dpp-d-prev" aria-label="前一天" title="前一天">◀</button>';
       html += '<div class="dpp-title">' + y + '年' + m + '月</div>';
-      html += '<button type="button" class="dpp-nav dpp-m-next" aria-label="下一月" title="下一月">▶</button>';
-      html += '<button type="button" class="dpp-nav dpp-y-next" aria-label="下一年" title="下一年">»</button>';
+      html += '<button type="button" class="dpp-nav dpp-d-next" aria-label="后一天" title="后一天">▶</button>';
+      html += '<button type="button" class="dpp-nav dpp-m-next" aria-label="下一月" title="下一月">»</button>';
       html += '</div>';
       html += '<div class="dpp-week">';
       for (var w = 0; w < 7; w++) html += '<span>' + DPP_WEEKS[w] + '</span>';
@@ -2229,14 +2246,16 @@
 
     /* 弹层内点击：导航按钮翻页 / 点选日期写回 input（事件委托） */
     if (birthDatePop) {
+      /* 弹层内 mousedown 阻止默认焦点转移：input 不失焦，click 不会被 blur→change→重渲染吃掉 */
+      birthDatePop.addEventListener('mousedown', function (e) { e.preventDefault(); });
       birthDatePop.addEventListener('click', function (e) {
         var t = e.target;
         if (!t || !t.classList) return;
         if (t.classList.contains('dpp-nav')) {
-          if (t.classList.contains('dpp-y-prev')) shiftPopView(-1, 0);
-          else if (t.classList.contains('dpp-y-next')) shiftPopView(1, 0);
-          else if (t.classList.contains('dpp-m-prev')) shiftPopView(0, -1);
+          if (t.classList.contains('dpp-m-prev')) shiftPopView(0, -1);
           else if (t.classList.contains('dpp-m-next')) shiftPopView(0, 1);
+          else if (t.classList.contains('dpp-d-prev')) shiftBirthDay(-1);
+          else if (t.classList.contains('dpp-d-next')) shiftBirthDay(1);
           return;
         }
         if (t.classList.contains('dpp-day')) {
@@ -2248,8 +2267,7 @@
       });
     }
 
-    /* 聚焦输入框：打开弹层；并记录当前值（blur 校验失败时回退用） */
-    var lastValidBirth = '';
+    /* 聚焦输入框：打开弹层；并记录当前值（blur 校验失败时回退用；lastValidBirth 已在上方声明） */
     if (birthDateInput) {
       birthDateInput.addEventListener('focus', function () {
         lastValidBirth = birthDateInput.value;
@@ -2269,18 +2287,25 @@
             && y >= YEAR_MIN && y <= new Date().getFullYear();
         }
         if (ok) {
-          birthDateInput.value = y + '-' + pad2(m) + '-' + pad2(d);
-          birthDateInput.dispatchEvent(new Event('change', { bubbles: true }));
+          var normalized = y + '-' + pad2(m) + '-' + pad2(d);
+          birthDateInput.value = normalized;
+          /* 值未真正变化时不触发 change：避免弹层 innerHTML 被无谓重建（原按钮节点被替换导致点击失效的根因之一） */
+          if (normalized !== lastValidBirth) {
+            birthDateInput.dispatchEvent(new Event('change', { bubbles: true }));
+          }
         } else {
           birthDateInput.value = lastValidBirth;
         }
       });
-      /* value 变化（年份调节按钮写回等）时，若弹层开着则刷新显示 */
+      /* value 变化（年份调节按钮写回等）时，若弹层开着则刷新显示；
+         input 值的年月与弹层当前视图一致时不重置 popView（保留用户翻页位置），仅重绘刷新选中高亮 */
       birthDateInput.addEventListener('change', function () {
         if (birthDatePopIsOpen()) {
           var base = getBirthBase();
-          popView.y = base.y;
-          popView.m = base.m;
+          if (base.y !== popView.y || base.m !== popView.m) {
+            popView.y = base.y;
+            popView.m = base.m;
+          }
           renderBirthDatePicker();
         }
       });
