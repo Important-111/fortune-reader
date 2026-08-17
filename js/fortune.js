@@ -269,32 +269,41 @@
     inner: ['留十分钟独处，把心里的账理一理', '写两行日记，给情绪一个出口', '少刷点手机，多听自己一点']
   };
 
-  /* 时间维度 × 主导倾向 的周期主解读文案（4 × 4 = 16 条，口语、可执行、按周期主题差异化；
+  /* 周期展示标签：今日/本周/本月/本年专属徽标用 */
+  var MBTI_PERIOD_LABEL = {
+    day:   '今日专属',
+    week:  '本周专属',
+    month: '本月专属',
+    year:  '本年专属'
+  };
+
+  /* 时间维度 × 主导倾向 的周期主解读文案（4 × 4 × 2 = 32 条，口语、可执行、按周期主题差异化；
+     每个 period 每个 domKey 提供两条：「周期总览」+「周期行动/注意」；
      直接映射，不耗任何 rng，与主推演序列完全隔离） */
   var MBTI_PERIOD_ADVICE = {
     day: {
-      adv:    '今天主打一个稳准快，把最想干的那件小事一鼓作气办掉。',
-      stable: '今天别求快，守住手头一件正事做完即是稳赢。',
-      social: '今天多开口多搭话，一句闲聊可能就给你今天带来好心情。',
-      inner:  '今天留十分钟独处，听听心里那个声音再决定动不动。'
+      adv:    ['今天主打一个稳准快，把最想干的那件小事一鼓作气办掉。', '今天冲劲在线，先干最能见效的一件，别被杂事带偏。'],
+      stable: ['今天别求快，守住手头一件正事做完即是稳赢。', '今天少变动，把手头计划事做扎实就是赚。'],
+      social: ['今天多开口多搭话，一句闲聊可能就给你今天带来好心情。', '今天主动约一句，别人的一句回应就能点亮你。'],
+      inner:  ['今天留十分钟独处，听听心里那个声音再决定动不动。', '今天别硬扛，先静一静，想清楚了再出手。']
     },
     week: {
-      adv:    '这一周适合持续推进，把上星期的计划往前挪一大步。',
-      stable: '这一周按既定清单步步为营，收尾比开新局更重要。',
-      social: '这一周适合组局协作，拉上搭子分头行动效率更高。',
-      inner:  '这一周给思路留白，日积月累的复盘会让方向更清楚。'
+      adv:    ['这一周适合持续推进，把上星期的计划往前挪一大步。', '这一周劲头足，选定一个主目标集中火力打穿它。'],
+      stable: ['这一周按既定清单步步为营，收尾比开新局更重要。', '这一周稳字当头，把每天的事都闭环掉就是赢。'],
+      social: ['这一周适合组局协作，拉上搭子分头行动效率更高。', '这一周多走一步人脉，一次约谈可能埋下下周的惊喜。'],
+      inner:  ['这一周给思路留白，日积月累的复盘会让方向更清楚。', '这一周少熬夜多沉淀，念头理清了节奏自然就顺了。']
     },
     month: {
-      adv:    '这个月别怕野心，布局可以拉长预算、落子可以更果断。',
-      stable: '这个月以稳为主，把搭好的架子一步步填实就是加分。',
-      social: '这个月适合打开人脉，一次有效的合作能顶半年单干。',
-      inner:  '这个月向内生长，把情绪和方向都理清，心定了事才顺。'
+      adv:    ['这个月别怕野心，布局可以拉长预算、落子可以更果断。', '这个月把大目标切成阶段里程碑，每旬一小胜。'],
+      stable: ['这个月以稳为主，把搭好的架子一步步填实就是加分。', '这个月别贪多，守住两条主线做深做透最划算。'],
+      social: ['这个月适合打开人脉，一次有效的合作能顶半年单干。', '这个月多参加高质量场合，贵人往往在闲聊里出现。'],
+      inner:  ['这个月向内生长，把情绪和方向都理清，心定了事才顺。', '这个月给自己定一个月度复盘日，得失都看得见。']
     },
     year: {
-      adv:    '这一年是发力之年，大胆把目标定高，持续加码成大事。',
-      stable: '这一年求的是厚积薄发，根基打牢，后面的路才走得远。',
-      social: '这一年靠人成事，多交给靠谱的人，借力比硬扛更快。',
-      inner:  '这一年是心性成长之年，稳得住自己，运气自然向你靠拢。'
+      adv:    ['这一年是发力之年，大胆把目标定高，持续加码成大事。', '这一年敢做梦更敢落地，把每一步都驶向同一个方向。'],
+      stable: ['这一年求的是厚积薄发，根基打牢，后面的路才走得远。', '这一年守住基本盘，把底子夯实，机会自然找上门。'],
+      social: ['这一年靠人成事，多交给靠谱的人，借力比硬扛更快。', '这一年经营长期关系，积累的信誉会在关键时刻帮到你。'],
+      inner:  ['这一年是心性成长之年，稳得住自己，运气自然向你靠拢。', '这一年把耐心当资产，慢慢来反而走得快。']
     }
   };
 
@@ -2526,12 +2535,16 @@
         extra = pickN(mrng, advicePool, 2);
       }
       var mainAdvice = (MBTI_ADVICE[domKey] && MBTI_ADVICE[domKey][f.levelKey]) || '';
-      // 周期主解读：按当前主导倾向 domKey 与时间维度 period 取静态文案，直接映射不耗 rng
-      var periodMain = (MBTI_PERIOD_ADVICE[period] && MBTI_PERIOD_ADVICE[period][domKey]) || '';
+      // 周期主解读：按当前主导倾向 domKey 与时间维度 period 取静态文案（两条：周期总览+周期行动），
+      // 直接映射不耗 rng，与主推演序列完全隔离
+      var pa = (MBTI_PERIOD_ADVICE[period] && MBTI_PERIOD_ADVICE[period][domKey]) || [];
       var items = [];
-      if (periodMain) items.push(periodMain);
-      if (mainAdvice) items.push(mainAdvice);
-      items = items.concat(extra);
+      if (pa && pa.length) { items = items.concat(pa); }   // 先放「周期总览 + 周期行动」两条
+      if (mainAdvice) items.push(mainAdvice);              // 再放运势等级建议
+      items = items.concat(extra);                         // 最后接小贴士
+
+      // 周期专属徽标：让四个 tab 一眼可辨（标签来自静态表，防注入）
+      var periodTag = '<span class="mbti-period-tag">' + (MBTI_PERIOD_LABEL[period] || period) + '</span>';
 
       // 注入内容全部来自静态文案表（类型代码也来自固定下拉项），无用户输入，防注入
       var keywordHtml = (pf.keywords || []).map(function (k) {
@@ -2552,7 +2565,10 @@
         '</div>' +
         '<div class="mbti-keywords">' + keywordHtml + '</div>' +
         '<div class="mbti-advice-block">' +
-          '<h4 class="mbti-advice-title">人格 × ' + f.periodLabel + '运势（' + f.levelText + '）</h4>' +
+          '<div class="mbti-advice-title-row">' +
+            periodTag +
+            '<h4 class="mbti-advice-title">人格 × ' + f.periodLabel + '运势（' + f.levelText + '）</h4>' +
+          '</div>' +
           '<ul class="mbti-advice-list">' + listHtml + '</ul>' +
         '</div>';
     }
