@@ -2256,6 +2256,10 @@
         var t = e.target;
         if (!t || !t.classList) return;
         if (t.classList.contains('dpp-nav')) {
+          /* 关键：shift 会重绘弹层 innerHTML，被点击的按钮节点随即被移出 DOM 变为 detached，
+             该 click 继续冒泡到 document 时 contains(detached) 返回 false，
+             会被误判为「点击弹层外部」而关闭弹层。必须在弹层内处理即阻止冒泡。 */
+          e.stopPropagation();
           if (t.classList.contains('dpp-m-prev')) shiftBirthMonth(-1);
           else if (t.classList.contains('dpp-m-next')) shiftBirthMonth(1);
           else if (t.classList.contains('dpp-d-prev')) shiftBirthDay(-1);
